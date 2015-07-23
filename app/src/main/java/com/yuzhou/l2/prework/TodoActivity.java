@@ -125,6 +125,7 @@ public class TodoActivity extends Activity
         try {
             items = new ArrayList<>(FileUtils.readLines(todoFile));
         } catch (IOException e) {
+            items = new ArrayList<>();
             e.printStackTrace();
         }
     }
