@@ -13,6 +13,7 @@ public class EditItemActivity extends Activity
 {
     private EditText editText;
     private Intent intent;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -21,7 +22,11 @@ public class EditItemActivity extends Activity
         setContentView(R.layout.activity_edit_item);
 
         intent = getIntent();
-        String title = intent.getStringExtra("title");
+        // file
+        //String title = intent.getStringExtra("title");
+        // SQLite
+        user = (User) intent.getSerializableExtra("user");
+        String title = user.getName();
 
         editText = (EditText) findViewById(R.id.editText);
         editText.setText(title);
@@ -54,7 +59,12 @@ public class EditItemActivity extends Activity
 
     public void saveTitle(View view)
     {
-        intent.putExtra("title", editText.getText().toString());
+        // file
+        //intent.putExtra("new_title", editText.getText().toString());
+        // SQLite
+        user.setName(editText.getText().toString());
+        intent.putExtra("new_user", user);
+
         setResult(RESULT_OK, intent);
         finish();
     }

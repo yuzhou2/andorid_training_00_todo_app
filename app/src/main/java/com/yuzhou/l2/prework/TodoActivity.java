@@ -11,6 +11,9 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.activeandroid.query.Delete;
+import com.activeandroid.query.Select;
+
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -18,10 +21,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class TodoActivity extends Activity
 {
     List<String> items;
+    List<User> users;
     ArrayAdapter<String> itemsAdapter;
     ListView lvItems;
 
@@ -31,11 +34,16 @@ public class TodoActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_todo);
 
+        // read from array
         //items = new ArrayList();
         //items.add("First Item");
         //items.add("Second Item");
-        readItems();
 
+        // read from SQLite
+        revamp();
+
+        // read from file
+        //readItems();
         itemsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
 
         lvItems = (ListView) findViewById(R.id.lvItems);
@@ -74,12 +82,21 @@ public class TodoActivity extends Activity
     {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 0 && resultCode == RESULT_OK) {
+
             int position = data.getIntExtra("position", -1);
-            String title = data.getStringExtra("title");
             if (position != -1) {
-                items.set(position, title);
+                // update file
+                //String title = data.getStringExtra("new_title");
+                //items.set(position, title);
+                //saveItems();
+
+                // update SQLite
+                User newUser = (User) data.getSerializableExtra("new_user");
+                User user = users.get(position);
+                user.setName(newUser.getName());
+                user.save();
+                items.set(position, user.getName());
                 itemsAdapter.notifyDataSetChanged();
-                saveItems();
             }
         }
     }
@@ -88,8 +105,16 @@ public class TodoActivity extends Activity
     {
         EditText etNewItem = (EditText) findViewById(R.id.etNewItem);
         itemsAdapter.add(etNewItem.getText().toString());
+
+        // write to file
+        //saveItems();
+
+        // write to SQLite
+        User user = new User(etNewItem.getText().toString());
+        user.save();
+        users.add(user);
+
         etNewItem.setText("");
-        saveItems();
     }
 
     private void setupListViewListener()
@@ -99,9 +124,15 @@ public class TodoActivity extends Activity
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id)
             {
+                String name = items.get(position);
+                // drop from file
+                //saveItems();
+
+                // drop from SQLite
+                List<User> delUsers = new Delete().from(User.class).where("NAME = ?", name).execute();
+
                 items.remove(position);
                 itemsAdapter.notifyDataSetChanged();
-                saveItems();
                 return true;
             }
         });
@@ -112,12 +143,17 @@ public class TodoActivity extends Activity
             {
                 Intent intent = new Intent(getApplicationContext(), EditItemActivity.class);
                 intent.putExtra("position", position);
-                intent.putExtra("title", items.get(position));
+                // file
+                //intent.putExtra("title", items.get(position));
+
+                // SQLite
+                intent.putExtra("user", users.get(position));
                 startActivityForResult(intent, 0);
             }
         });
     }
 
+    @Deprecated
     private void readItems()
     {
         File filesDir = getFilesDir();
@@ -130,6 +166,7 @@ public class TodoActivity extends Activity
         }
     }
 
+    @Deprecated
     private void saveItems()
     {
         File filesDir = getFilesDir();
@@ -138,6 +175,17 @@ public class TodoActivity extends Activity
             FileUtils.writeLines(todoFile, items);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void revamp()
+    {
+        items = new ArrayList<>();
+        users = new ArrayList<>();
+        List<User> data = new Select().from(User.class).execute();
+        users.addAll(data);
+        for (User user : users) {
+            items.add(user.getName());
         }
     }
 }
