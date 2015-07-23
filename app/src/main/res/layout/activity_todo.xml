@@ -33,6 +33,6 @@
         android:layout_alignBottom="@+id/etNewItem"
         android:layout_alignRight="@+id/lvItems"
         android:onClick="addTodoItem"
-        android:text="@string/button_add"/>
+        android:text="@string/add"/>
 
 </RelativeLayout>

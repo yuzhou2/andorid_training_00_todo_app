@@ -1,6 +1,7 @@
 package com.yuzhou.l2.prework;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,9 +36,10 @@ public class TodoActivity extends Activity
         //items.add("Second Item");
         readItems();
 
-        itemsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
+        itemsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
 
         lvItems = (ListView) findViewById(R.id.lvItems);
+        lvItems.setItemsCanFocus(true);
         lvItems.setAdapter(itemsAdapter);
 
         setupListViewListener();
@@ -67,6 +69,21 @@ public class TodoActivity extends Activity
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 0 && resultCode == RESULT_OK) {
+            int position = data.getIntExtra("position", -1);
+            String title = data.getStringExtra("title");
+            if (position != -1) {
+                items.set(position, title);
+                itemsAdapter.notifyDataSetChanged();
+                saveItems();
+            }
+        }
+    }
+
     public void addTodoItem(View view)
     {
         EditText etNewItem = (EditText) findViewById(R.id.etNewItem);
@@ -88,6 +105,17 @@ public class TodoActivity extends Activity
                 return true;
             }
         });
+        lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
+                Intent intent = new Intent(getApplicationContext(), EditItemActivity.class);
+                intent.putExtra("position", position);
+                intent.putExtra("title", items.get(position));
+                startActivityForResult(intent, 0);
+            }
+        });
     }
 
     private void readItems()
@@ -95,7 +123,7 @@ public class TodoActivity extends Activity
         File filesDir = getFilesDir();
         File todoFile = new File(filesDir, "todo.txt");
         try {
-            items = new ArrayList<String>(FileUtils.readLines(todoFile));
+            items = new ArrayList<>(FileUtils.readLines(todoFile));
         } catch (IOException e) {
             e.printStackTrace();
         }
