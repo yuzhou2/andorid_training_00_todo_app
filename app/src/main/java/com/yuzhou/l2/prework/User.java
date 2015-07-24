@@ -6,6 +6,9 @@ import com.activeandroid.annotation.Table;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Created by yuzhou on 2015/07/23.
  */
@@ -13,6 +16,8 @@ import java.io.Serializable;
 public class User extends Model implements Serializable
 {
     @Column(name = "NAME")
+    @Getter
+    @Setter
     private String name;
 
     public User()
@@ -20,16 +25,6 @@ public class User extends Model implements Serializable
     }
 
     public User(String name)
-    {
-        this.name = name;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName(String name)
     {
         this.name = name;
     }
